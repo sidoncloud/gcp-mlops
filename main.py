@@ -2,11 +2,10 @@ from google.cloud import bigquery
 from flask import Flask
 from flask import request
 import os ,json,logging
-
 app = Flask(__name__)
 client = bigquery.Client()
-
 @app.route('/')
+
 def main():
     table_id = "ml-ops-387008.udemy_course.us_states"
     job_config = bigquery.LoadJobConfig(
