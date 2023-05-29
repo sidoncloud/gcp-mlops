@@ -1,0 +1,23 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/ml-ops-387008/py-bq-load:$COMMIT_SHA', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/ml-ops-387008/py-bq-load:$COMMIT_SHA']
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+   - 'run'
+   - 'deploy'
+   - 'py-bq-load'
+   - '--image'
+   - 'gcr.io/ml-ops-387008/py-bq-load:$COMMIT_SHA'
+   - '--region'
+   - 'us-central1'
+   - '--allow-unauthenticated'
+images:
+- 'gcr.io/ml-ops-387008/py-bq-load:$COMMIT_SHA'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
