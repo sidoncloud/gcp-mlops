@@ -5,6 +5,10 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'gcr.io/ml-ops-387008/py-bq-load:$COMMIT_SHA']
 
+- name: 'gcr.io/cloud-builders/docker'
+  entrypoint: 'python'
+  args: ['-m', 'pytest', 'tests/']
+  
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
   args:
