@@ -10,7 +10,7 @@ steps:
   args:
    - '-c'
    - |
-      python -m pytest tests/
+      python -m pytest
   
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   entrypoint: gcloud
