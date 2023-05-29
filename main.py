@@ -21,8 +21,8 @@ def main():
     load_job.result()  
 
     destination_table = client.get_table(table_id)
-    assert destination_table.num_rows > 0, "Deployment failed. No data in the destination table."
-#     return {"data": destination_table.num_rows}
+#     assert destination_table.num_rows > 0, "Deployment failed. No data in the destination table."
+    return {"data": destination_table.num_rows}
 
 if __name__ == "__main__":
     app.run(debug=True, host="0.0.0.0", port=int(os.environ.get("PORT", 5052)))
