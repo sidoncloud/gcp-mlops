@@ -1,0 +1,48 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Build Docker Image'
+  args: ['build', '-t', 'gcr.io/udemy-mlops/cicd-vertex-bikeshare-model', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: 'Push Docker Image To GCR'
+  args: ['push', 'gcr.io/udemy-mlops/cicd-vertex-bikeshare-model']
+
+- name: 'gcr.io/udemy-mlops/cicd-vertex-bikeshare-model'
+  id: 'Execute Tests'
+  entrypoint: 'bash'
+  args:
+   - '-c'
+   - |
+      pytest test-training.py
+      
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Submit Training Job'
+  args: ['ai', 'custom-jobs', 'create', '--region=us-central1', '--project=udemy-mlops', '--worker-pool-spec=replica-count=1,machine-type=n1-standard-4,container-image-uri=gcr.io/udemy-mlops/cicd-vertex-bikeshare-model', '--display-name=bike-sharing-model-training']
+  
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Upload Model'
+  args: ['ai', 'models', 'upload',
+         '--container-image-uri=us-docker.pkg.dev/vertex-ai/prediction/sklearn-cpu.1-0:latest',
+         '--description=bikeshare-new-model',
+         '--display-name=bikeshare-new-model',
+         '--artifact-uri=gs://sid-ml-ops/bike-share-rf-regression-artifact/',
+         '--project=udemy-mlops',
+         '--region=us-central1']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Fetch Model ID'
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud ai models list --region=us-central1 --project=udemy-mlops --format="get(MODEL_ID)" --sort-by="createTime" --limit=1 > /workspace/model_id.txt']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Create Endpoint'
+  entrypoint: 'bash'
+  args: ['-c', 'gcloud beta ai endpoints create --display-name=bikeshare-model-endpoint-1 --format="get(name)" --region=us-central1 --project=udemy-mlops > /workspace/endpoint_id.txt']
+
+- name: 'gcr.io/cloud-builders/gcloud'
+  id: 'Deploy Model Endpoint'
+  entrypoint: 'bash'
+  args: 
+  - '-c'
+  - |
+    gcloud beta ai endpoints deploy-model $(cat /workspace/endpoint_id.txt) --region=us-central1 --model=$(cat /workspace/model_id.txt) --display-name=bikeshare-model-endpoint --traffic-split=0=100 --machine-type=n1-standard-4
