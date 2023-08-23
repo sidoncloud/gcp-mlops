@@ -1,0 +1,6 @@
+scikit-learn==1.2.2
+xgboost==1.6.2
+pandas
+pyarrow
+category_encoders
+imblearn
