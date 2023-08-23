@@ -1,0 +1,10 @@
+Flask==2.1.0
+gunicorn==20.1.0
+scikit-learn==1.2.2 #OPTIONAL
+xgboost==1.6.2
+pandas
+pyarrow
+pytest
+category_encoders
+requests
+google-cloud-storage

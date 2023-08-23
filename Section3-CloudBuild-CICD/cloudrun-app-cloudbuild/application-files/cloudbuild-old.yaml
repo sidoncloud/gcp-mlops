@@ -1,0 +1,30 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/udemy-mlops-395416/demo-flask-app', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/udemy-mlops-395416/demo-flask-app']
+
+- name: 'gcr.io/udemy-mlops-395416/demo-flask-app'
+  entrypoint: 'bash'
+  args:
+   - '-c'
+   - |
+      python -m pytest
+  
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+   - 'run'
+   - 'deploy'
+   - 'demo-flask-app'
+   - '--image'
+   - 'gcr.io/udemy-mlops-395416/demo-flask-app'
+   - '--region'
+   - 'us-central1'
+   - '--allow-unauthenticated'
+images:
+- 'gcr.io/udemy-mlops-395416/demo-flask-app'
+
+options:
+  logging: CLOUD_LOGGING_ONLY

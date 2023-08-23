@@ -1,0 +1,30 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/udemy-mlops/xgboost_coupon_model', '.']
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/udemy-mlops/xgboost_coupon_model']
+
+- name: 'gcr.io/udemy-mlops/xgboost_coupon_model'
+  entrypoint: 'bash'
+  args:
+   - '-c'
+   - |
+      python main.py & python -m pytest
+  
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args:
+   - 'run'
+   - 'deploy'
+   - 'xgboost-coupon-model'
+   - '--image'
+   - 'gcr.io/udemy-mlops/xgboost_coupon_model'
+   - '--region'
+   - 'us-central1'
+   - '--allow-unauthenticated'
+images:
+- 'gcr.io/udemy-mlops/xgboost_coupon_model'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
