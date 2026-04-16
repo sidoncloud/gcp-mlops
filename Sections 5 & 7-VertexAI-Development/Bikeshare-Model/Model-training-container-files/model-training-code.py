@@ -15,9 +15,9 @@ from joblib import dump
 from sklearn.pipeline import make_pipeline
 
 # ---- Configuration ----
-BUCKET_NAME = "YOUR_BUCKET_NAME"  # Replace with your GCS bucket name
+BUCKET_NAME = "mlops-udemy7944"  # Replace with your GCS bucket name
 DATA_PATH = f"gs://{BUCKET_NAME}/bike-share/hour.csv"
-ARTIFACT_GCS_PATH = "bike-share-rf-regression-artifact/model.joblib"
+ARTIFACT_GCS_PATH = "bikeshare-artifact/model.joblib"
 
 storage_client = storage.Client()
 bucket = storage_client.bucket(BUCKET_NAME)
@@ -51,7 +51,7 @@ def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     for col in cols:
         df_oh = one_hot_encoding(df_oh, col)
 
-    X = df_oh.drop(columns=['atemp', 'windspeed', 'casual', 'registered', 'count'], axis=1)
+    X = df_oh.drop(columns=['atemp', 'windspeed', 'casual', 'registered', 'count'])
     y = df_oh['count']
     return X, y
 
