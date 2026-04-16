@@ -20,7 +20,10 @@ gcloud artifacts repositories create ${REPO_NAME} \
 gcloud auth configure-docker ${REGION}-docker.pkg.dev
 
 # Step 1 - Build the Docker image
-docker build -t ${IMAGE_NAME} .
+# --platform linux/amd64 is required so the image runs on Vertex AI training VMs (x86_64).
+# Without this flag, builds on Apple Silicon (M1/M2/M3) Macs produce ARM64 images
+# that fail with "exec format error" on Vertex AI.
+docker build --platform linux/amd64 -t ${IMAGE_NAME} .
 
 # Step 2 - Tag the image for Artifact Registry
 docker tag ${IMAGE_NAME} ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${IMAGE_NAME}
