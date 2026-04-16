@@ -52,7 +52,7 @@ def preprocess_data(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
     for col in cols:
         df_oh = one_hot_encoding(df_oh, col)
 
-    X = df_oh.drop(columns=['atemp', 'windspeed', 'casual', 'registered', 'count'], axis=1)
+    X = df_oh.drop(columns=['atemp', 'windspeed', 'casual', 'registered', 'count'])
     y = df_oh['count']
     return X, y
 
