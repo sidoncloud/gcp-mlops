@@ -8,7 +8,6 @@ Updated: Cloud Functions Gen 2, functions-framework, google-cloud-aiplatform>=1.
 
 import functions_framework
 from google.cloud import aiplatform
-from google.cloud.aiplatform.gapic import JobState
 import logging
 import json
 from cloudevents.http import CloudEvent
@@ -59,20 +58,12 @@ def trigger_batch_predictions(cloud_event: CloudEvent) -> None:
         sync=False,
     )
 
-    batch_predict_job.wait()
-
-    if batch_predict_job.state == JobState.JOB_STATE_SUCCEEDED:
-        logging.info(json.dumps({
-            "message": "Batch prediction job succeeded",
-            "job_id": batch_predict_job.name,
-            "input_file": gcs_input_uri,
-            "output_uri": output_uri,
-            "status": "success",
-        }))
-    else:
-        logging.error(json.dumps({
-            "message": "Batch prediction job did not succeed",
-            "job_id": batch_predict_job.name,
-            "state": str(batch_predict_job.state),
-            "status": "failed",
-        }))
+    # Don't wait — batch jobs take 10+ minutes and Cloud Functions has a 540s max timeout.
+    # The job runs asynchronously. Check status in the Vertex AI console or via the SDK.
+    logging.info(json.dumps({
+        "message": "Batch prediction job submitted",
+        "job_id": batch_predict_job.name,
+        "input_file": gcs_input_uri,
+        "output_uri": output_uri,
+        "status": "submitted",
+    }))
