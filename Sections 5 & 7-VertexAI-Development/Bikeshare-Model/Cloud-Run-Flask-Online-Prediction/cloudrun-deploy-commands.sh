@@ -29,6 +29,13 @@ gcloud auth configure-docker ${REGION}-docker.pkg.dev
 # Step 2 - Build the Docker image
 docker build -t ${SERVICE_NAME} .
 
+# OPTIONAL - Apple Silicon (M1/M2/M3) Macs only:
+# Cloud Run runs containers on x86_64. The default build on Apple Silicon produces
+# an ARM64 image which fails to start on Cloud Run ("container failed to start
+# and listen on the port"). If you are on an Apple Silicon Mac, comment out the
+# line above and use the line below instead:
+# docker build --platform linux/amd64 -t ${SERVICE_NAME} .
+
 # Step 3 - Tag and push to Artifact Registry
 docker tag ${SERVICE_NAME} ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}
 docker push ${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO_NAME}/${SERVICE_NAME}
