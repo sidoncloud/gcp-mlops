@@ -1,17 +1,21 @@
 """
-Dataset generator for LAB_ECOM_VERTEXAI_001 - Cart Conversion Scoring.
+Dataset generator for the Cart Conversion Scoring assignment.
 
-Generates two CSV files:
-  - cart_sessions_train.csv  (20000 rows, with 'converted' target column)
-  - cart_sessions_new.csv    (100  rows, unseen sessions, NO target column)
-                             These represent cart sessions just landed in GCS.
+Outputs two CSV files:
+  - cart_sessions_train.csv  (20,000 raw rows with 'converted' target)
+                             Read by model-training-code.py for training.
+  - cart_sessions_new.csv    (100 PRE-ENCODED rows, no target, no session_id)
+                             Column order matches the model's expected feature
+                             order exactly, so the orchestrator script and curl
+                             can submit rows directly to the deployed endpoint
+                             without any client-side preprocessing.
 """
 import csv
 import random
+import pandas as pd
 from pathlib import Path
 
 random.seed(42)
-
 OUTPUT_DIR = Path(__file__).parent
 
 DEVICES = ["mobile", "desktop", "tablet"]
@@ -26,7 +30,8 @@ def generate_session(session_id: str, include_target: bool = True) -> dict:
     previous_purchases = random.randint(1, 50) if is_returning else 0
     device = random.choices(DEVICES, weights=DEVICE_WEIGHTS, k=1)[0]
     traffic = random.choices(TRAFFIC_SOURCES, weights=TRAFFIC_WEIGHTS, k=1)[0]
-    items_in_cart = random.choices([1, 2, 3, 4, 5, 6, 7, 8, 9, 10], weights=[40, 25, 15, 8, 5, 3, 2, 1, 0.5, 0.5], k=1)[0]
+    items_in_cart = random.choices([1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                                   weights=[40, 25, 15, 8, 5, 3, 2, 1, 0.5, 0.5], k=1)[0]
     cart_total_value = round(items_in_cart * random.uniform(15.0, 180.0), 2)
     pages_viewed = random.randint(1, 30)
     session_duration_seconds = random.randint(20, 1800)
@@ -59,51 +64,55 @@ def generate_session(session_id: str, include_target: bool = True) -> dict:
 
     if include_target:
         prob = 0.12
-        if is_returning:
-            prob += 0.22
-        if has_discount_code:
-            prob += 0.15
-        if previous_purchases > 5:
-            prob += 0.12
-        if used_search:
-            prob += 0.08
-        if 60 <= session_duration_seconds <= 600:
-            prob += 0.10
-        if items_in_cart >= 2:
-            prob += 0.08
-        if traffic in ("email", "direct"):
-            prob += 0.08
-        if traffic == "paid":
-            prob -= 0.08
-        if added_to_wishlist:
-            prob -= 0.10
-        if device == "mobile" and session_duration_seconds < 60:
-            prob -= 0.08
-        if cart_total_value > 500 and is_returning == 0:
-            prob -= 0.05
+        if is_returning: prob += 0.22
+        if has_discount_code: prob += 0.15
+        if previous_purchases > 5: prob += 0.12
+        if used_search: prob += 0.08
+        if 60 <= session_duration_seconds <= 600: prob += 0.10
+        if items_in_cart >= 2: prob += 0.08
+        if traffic in ("email", "direct"): prob += 0.08
+        if traffic == "paid": prob -= 0.08
+        if added_to_wishlist: prob -= 0.10
+        if device == "mobile" and session_duration_seconds < 60: prob -= 0.08
+        if cart_total_value > 500 and is_returning == 0: prob -= 0.05
         prob = max(0.02, min(0.95, prob))
         session["converted"] = 1 if random.random() < prob else 0
 
     return session
 
 
-def write_csv(path: Path, rows: list) -> None:
+def write_csv_dict(path: Path, rows: list) -> None:
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 
 
+def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply the SAME preprocessing as model-training-code.py so the unseen
+    CSV is already in the model's expected column order."""
+    df = df.drop(columns=["session_id"])
+    cols = ["device_type", "traffic_source"]
+    for col in cols:
+        df[col] = df[col].astype("category")
+    for col in cols:
+        df = pd.concat([df, pd.get_dummies(df[col], prefix=col, drop_first=True).astype(int)], axis=1)
+        df = df.drop([col], axis=1)
+    return df
+
+
 def main() -> None:
-    train = [generate_session(f"CART_{i:05d}", include_target=True) for i in range(1, 20001)]
-    unseen = [generate_session(f"NEW_{i:05d}", include_target=False) for i in range(1, 101)]
+    train_rows = [generate_session(f"CART_{i:05d}", include_target=True) for i in range(1, 20001)]
+    unseen_rows = [generate_session(f"NEW_{i:05d}", include_target=False) for i in range(1, 101)]
 
-    write_csv(OUTPUT_DIR / "cart_sessions_train.csv", train)
-    write_csv(OUTPUT_DIR / "cart_sessions_new.csv", unseen)
+    write_csv_dict(OUTPUT_DIR / "cart_sessions_train.csv", train_rows)
+    print(f"Wrote {len(train_rows)} training rows (raw, with 'converted' target).")
 
-    pos = sum(1 for r in train if r["converted"] == 1)
-    print(f"Generated {len(train)} training rows ({pos} converted, {pos/len(train):.2%}).")
-    print(f"Generated {len(unseen)} unseen rows (no target).")
+    unseen_df = pd.DataFrame(unseen_rows)
+    encoded = preprocess(unseen_df)
+    encoded.to_csv(OUTPUT_DIR / "cart_sessions_new.csv", index=False)
+    print(f"Wrote {len(encoded)} unseen rows (pre-encoded, {len(encoded.columns)} columns, no target).")
+    print("Encoded columns:", list(encoded.columns))
 
 
 if __name__ == "__main__":

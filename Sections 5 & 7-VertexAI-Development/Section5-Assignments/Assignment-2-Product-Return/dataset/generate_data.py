@@ -1,17 +1,21 @@
 """
-Dataset generator for LAB_ECOM_VERTEXAI_002 - Product Return Prediction.
+Dataset generator for the Product Return Prediction assignment.
 
-Generates two CSV files:
-  - orders_train.csv   (20000 rows, with 'returned' target column)
-  - orders_new.csv     (100  rows, unseen new orders, NO target column)
-                       These represent orders that just landed in GCS.
+Outputs two CSV files:
+  - orders_train.csv  (20,000 raw rows with 'returned' target)
+                      Read by model-training-code.py for training.
+  - orders_new.csv    (100 PRE-ENCODED rows, no target, no order_id)
+                      Column order matches the model's expected feature order
+                      exactly, so the orchestrator script and curl can submit
+                      rows directly to the deployed endpoint without any
+                      client-side preprocessing.
 """
 import csv
 import random
+import pandas as pd
 from pathlib import Path
 
 random.seed(42)
-
 OUTPUT_DIR = Path(__file__).parent
 
 CATEGORIES = ["Clothing", "Electronics", "Home", "Sports", "Books", "Beauty", "Toys"]
@@ -27,7 +31,8 @@ def generate_order(order_id: str, include_target: bool = True) -> dict:
     discount_applied_percent = random.choices([0, 5, 10, 15, 20, 25, 30, 40, 50],
                                               weights=[35, 15, 15, 10, 10, 7, 5, 2, 1], k=1)[0]
     order_total = round(item_price * num_items * (1 - discount_applied_percent / 100), 2)
-    shipping_days = random.choices([1, 2, 3, 4, 5, 6, 7, 10, 14], weights=[5, 20, 25, 20, 15, 8, 4, 2, 1], k=1)[0]
+    shipping_days = random.choices([1, 2, 3, 4, 5, 6, 7, 10, 14],
+                                   weights=[5, 20, 25, 20, 15, 8, 4, 2, 1], k=1)[0]
     category = random.choices(CATEGORIES, weights=CATEGORY_WEIGHTS, k=1)[0]
     product_avg_rating = round(random.uniform(2.0, 5.0), 1)
     is_first_purchase = 1 if random.random() < 0.30 else 0
@@ -67,50 +72,55 @@ def generate_order(order_id: str, include_target: bool = True) -> dict:
 
     if include_target:
         prob = 0.12
-        if category == "Clothing":
-            prob += 0.22
-        elif category == "Beauty":
-            prob += 0.10
-        elif category == "Books":
-            prob -= 0.08
-        elif category == "Electronics":
-            prob += 0.05
+        if category == "Clothing": prob += 0.22
+        elif category == "Beauty": prob += 0.10
+        elif category == "Books": prob -= 0.08
+        elif category == "Electronics": prob += 0.05
         prob += min(0.25, customer_past_return_rate * 0.50)
-        if discount_applied_percent >= 30:
-            prob += 0.12
-        if product_avg_rating < 3.5:
-            prob += 0.10
-        if is_first_purchase:
-            prob += 0.08
-        if used_size_guide == 1 and category == "Clothing":
-            prob -= 0.12
-        if shipping_days >= 7:
-            prob += 0.05
-        if order_total > 600:
-            prob += 0.04
+        if discount_applied_percent >= 30: prob += 0.12
+        if product_avg_rating < 3.5: prob += 0.10
+        if is_first_purchase: prob += 0.08
+        if used_size_guide == 1 and category == "Clothing": prob -= 0.12
+        if shipping_days >= 7: prob += 0.05
+        if order_total > 600: prob += 0.04
         prob = max(0.03, min(0.95, prob))
         order["returned"] = 1 if random.random() < prob else 0
 
     return order
 
 
-def write_csv(path: Path, rows: list) -> None:
+def write_csv_dict(path: Path, rows: list) -> None:
     with open(path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         writer.writeheader()
         writer.writerows(rows)
 
 
+def preprocess(df: pd.DataFrame) -> pd.DataFrame:
+    """Apply the SAME preprocessing as model-training-code.py so the unseen
+    CSV is already in the model's expected column order."""
+    df = df.drop(columns=["order_id"])
+    cols = ["product_category", "payment_method"]
+    for col in cols:
+        df[col] = df[col].astype("category")
+    for col in cols:
+        df = pd.concat([df, pd.get_dummies(df[col], prefix=col, drop_first=True).astype(int)], axis=1)
+        df = df.drop([col], axis=1)
+    return df
+
+
 def main() -> None:
-    train = [generate_order(f"ORD_{i:05d}", include_target=True) for i in range(1, 20001)]
-    unseen = [generate_order(f"NEW_{i:05d}", include_target=False) for i in range(1, 101)]
+    train_rows = [generate_order(f"ORD_{i:05d}", include_target=True) for i in range(1, 20001)]
+    unseen_rows = [generate_order(f"NEW_{i:05d}", include_target=False) for i in range(1, 101)]
 
-    write_csv(OUTPUT_DIR / "orders_train.csv", train)
-    write_csv(OUTPUT_DIR / "orders_new.csv", unseen)
+    write_csv_dict(OUTPUT_DIR / "orders_train.csv", train_rows)
+    print(f"Wrote {len(train_rows)} training rows (raw, with 'returned' target).")
 
-    pos = sum(1 for r in train if r["returned"] == 1)
-    print(f"Generated {len(train)} training rows ({pos} returned, {pos/len(train):.2%}).")
-    print(f"Generated {len(unseen)} unseen rows (no target).")
+    unseen_df = pd.DataFrame(unseen_rows)
+    encoded = preprocess(unseen_df)
+    encoded.to_csv(OUTPUT_DIR / "orders_new.csv", index=False)
+    print(f"Wrote {len(encoded)} unseen rows (pre-encoded, {len(encoded.columns)} columns, no target).")
+    print("Encoded columns:", list(encoded.columns))
 
 
 if __name__ == "__main__":
