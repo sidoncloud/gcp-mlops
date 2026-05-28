@@ -140,6 +140,14 @@ def custom_training_job_component(
             'time': {'7AM': 0, '10AM': 1, '2PM': 2, '6PM': 3, '10PM': 4}
         })
 
+        # Newer pandas no longer auto-downcasts replaced values, so these
+        # ordinal columns stay 'object'. Cast them to numeric explicitly,
+        # otherwise XGBoost rejects the object dtypes.
+        ordinal_cols = ['expiration', 'age', 'education', 'Bar', 'CoffeeHouse',
+                        'CarryAway', 'Restaurant20To50', 'income', 'time']
+        for col in ordinal_cols:
+            df_le[col] = pd.to_numeric(df_le[col], errors='coerce')
+
         x = df_le.drop('Y', axis=1)
         y = df_le.Y
         return x, y
