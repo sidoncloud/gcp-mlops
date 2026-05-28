@@ -184,7 +184,9 @@ def custom_training_job_component(
 
     def save_model_artifact(model):
         artifact_name = 'model.bst'
-        model.save_model(artifact_name)
+        # Save the native booster, not the sklearn wrapper. The wrapper's
+        # save_model() trips over _estimator_type with newer scikit-learn.
+        model.get_booster().save_model(artifact_name)
         model_artifact = bucket.blob('coupon-recommendation/artifacts/' + artifact_name)
         model_artifact.upload_from_filename(artifact_name)
 
