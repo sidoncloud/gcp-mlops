@@ -276,7 +276,7 @@ def pipeline(
     n_estimators = 40
 
     file_name = DATA_PATH
-    input_validation_task = validate_input_ds(file_name)
+    input_validation_task = validate_input_ds(filename=file_name)
 
     with dsl.Condition(input_validation_task.outputs["input_validation"] == "true"):
         model_training = custom_training_job_component(
