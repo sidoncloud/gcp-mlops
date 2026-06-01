@@ -99,14 +99,18 @@ def train_model_component(
     bucket = storage_client.bucket(bucket_name)
 
     # ---- Categorical encoding helpers ----
+    # Every value seen in the dataset is mapped explicitly so the encodings
+    # are unambiguous. The default 0 is for any unseen value.
     def purpose_encode(x):
-        return {"Consumer Goods": 1, "Vehicle": 2, "Tuition": 3, "Business": 4, "Repairs": 5}.get(x, 0)
+        return {"Other": 0, "Consumer Goods": 1, "Vehicle": 2, "Tuition": 3,
+                "Business": 4, "Repairs": 5}.get(x, 0)
 
     def other_parties_encode(x):
         return {"Guarantor": 1, "Co-Applicant": 2}.get(x, 0)
 
     def qualification_encode(x):
-        return {"unskilled": 1, "skilled": 2, "highly skilled": 3}.get(x, 0)
+        return {"unemployed": 0, "unskilled": 1, "skilled": 2,
+                "highly skilled": 3}.get(x, 0)
 
     def credit_standing_encode(x):
         return 1 if x == "good" else 0
@@ -115,13 +119,13 @@ def train_model_component(
         return {"Vehicle": 1, "Investments": 2, "Home": 3}.get(x, 0)
 
     def housing_encode(x):
-        return {"rent": 1, "own": 2}.get(x, 0)
+        return {"free": 0, "rent": 1, "own": 2}.get(x, 0)
 
     def marital_status_encode(x):
-        return {"Married": 1, "Single": 2}.get(x, 0)
+        return {"Divorced": 0, "Married": 1, "Single": 2}.get(x, 0)
 
     def other_payment_plans_encode(x):
-        return {"bank": 1, "stores": 2}.get(x, 0)
+        return {"none": 0, "bank": 1, "stores": 2}.get(x, 0)
 
     def sex_encode(x):
         return 1 if x == "M" else 0
