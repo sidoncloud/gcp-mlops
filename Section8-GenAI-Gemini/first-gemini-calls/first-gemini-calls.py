@@ -41,12 +41,18 @@ print(response.text)
 # Controlling the Output with a Generation Config
 # =============================================================================
 # temperature controls randomness, max_output_tokens caps the response length.
+# thinking_budget=0 disables the model's internal reasoning for this call.
+# Gemini 2.5 and up have "thinking" on by default, and those thinking tokens
+# count against max_output_tokens. With a small cap like 64, thinking can eat
+# the whole budget and leave response.text empty. Turning thinking off here
+# guarantees the cap goes entirely to the visible output.
 response = client.models.generate_content(
     model=MODEL,
     contents="Write a one-line tagline for a bike-sharing startup.",
     config=types.GenerateContentConfig(
         temperature=0.9,
         max_output_tokens=64,
+        thinking_config=types.ThinkingConfig(thinking_budget=0),
     ),
 )
 
