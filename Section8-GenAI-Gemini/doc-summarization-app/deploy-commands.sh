@@ -62,10 +62,6 @@ gcloud run deploy "${SERVICE_NAME}" \
 # ----------------------------------------------------------------------------
 # SERVICE_URL=$(gcloud run services describe "${SERVICE_NAME}" --region="${REGION}" --format="value(status.url)")
 #
-# curl -X POST "${SERVICE_URL}/summarize" \
-#   -H "Content-Type: application/json" \
-#   -d '{"text": "Cloud Run is a managed compute platform that lets you run stateless containers that are invocable via HTTP requests. It autoscales from zero and bills per request."}'
-#
 # curl -X POST "${SERVICE_URL}/summarize_gcs" \
 #   -H "Content-Type: application/json" \
-#   -d '{"gcs_uri": "gs://your-bucket/your-document.pdf"}'
+#   -d '{"gcs_uri": "gs://cloud-samples-data/generative-ai/pdf/2403.05530.pdf"}'
