@@ -121,8 +121,6 @@ else:
 # retired vertexai.generative_models module, so it is safe to use here.
 #
 # Requires: pip install "google-cloud-aiplatform[rag]"  (recent version)
-# (Verified that v1.14.0 of google-genai exposes the matching query-side types;
-#  see the report below for why this block is written, not executed, in-env.)
 import vertexai
 from vertexai import rag
 
@@ -144,8 +142,12 @@ corpus = rag.create_corpus(
 )
 print("\nCreated corpus:", corpus.name)
 
-# Import your documents. Replace this gs:// path with the bucket/prefix holding
-# your own files (PDF, TXT, DOCX, etc.). The engine chunks and embeds each one.
+# Import your documents. The lab ships a sample file under sample-docs/ named
+# remote-work-policy.txt. Upload it to a GCS bucket you own with:
+#   gsutil cp sample-docs/remote-work-policy.txt \
+#     gs://YOUR_BUCKET/company-docs/remote-work-policy.txt
+# Then replace the path below with your own bucket/prefix. The RAG Engine
+# accepts PDF, TXT, DOCX, and a few other formats.
 rag.import_files(
     corpus.name,
     paths=["gs://your-bucket-name/company-docs/"],  # replace with your own GCS path
