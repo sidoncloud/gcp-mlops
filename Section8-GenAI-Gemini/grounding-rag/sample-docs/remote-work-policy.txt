@@ -1,0 +1,96 @@
+AURORA SYSTEMS
+Employee Handbook
+Section 4.2: Remote Work Policy
+
+Effective Date: January 2026
+Owner: People Operations
+
+
+OVERVIEW
+========
+Aurora Systems supports remote work as a flexible arrangement that benefits
+both the employee and the company. This policy defines who is eligible for
+remote work, how to request it, and the expectations that come with it.
+
+
+ELIGIBILITY CRITERIA
+====================
+To be eligible for a remote work arrangement, an employee must meet ALL of
+the following conditions:
+
+  1. Tenure
+     The employee must have completed at least six months of continuous
+     employment with Aurora Systems. Employees in their initial probation
+     period are not eligible.
+
+  2. Role designation
+     The role must be designated as remote-eligible by the department head.
+     Customer-facing roles in the Showroom and Field Operations divisions
+     are not remote-eligible due to in-person service requirements.
+
+  3. Performance
+     The employee must hold a "Meets Expectations" or higher rating on
+     their most recent performance review. Employees on a performance
+     improvement plan are not eligible until the plan is closed.
+
+  4. Workspace
+     The employee must have a private, secure home work location with
+     reliable internet connectivity of at least 50 Mbps download speed.
+
+
+APPROVAL PROCESS
+================
+Eligible employees may apply for remote work by submitting a Remote Work
+Request form through the People Portal. Each request is reviewed by:
+
+  - The employee's direct manager
+  - The employee's department head
+  - The HR Business Partner assigned to that department
+
+Decisions are returned within ten business days of submission. Denials
+must include a written reason and may be appealed once to the Head of
+People Operations.
+
+
+ARRANGEMENT TYPES
+=================
+Approved remote work arrangements fall into one of three categories:
+
+  - Fully Remote: The employee works from their home location full time.
+    Office visits are limited to quarterly company gatherings.
+  - Hybrid 3-2: Three days in the office, two days remote each week.
+  - Hybrid 2-3: Two days in the office, three days remote each week.
+
+All arrangements are reviewed annually as part of the performance cycle.
+
+
+EQUIPMENT AND STIPEND
+=====================
+Aurora Systems provides every approved remote employee with a company
+laptop, an external monitor, a keyboard, and a mouse. A one-time stipend
+of five hundred US dollars is available toward home office setup, payable
+upon submission of itemized receipts within ninety days of arrangement
+approval.
+
+
+WORKING HOURS AND AVAILABILITY
+==============================
+Remote employees are expected to be available during their team's core
+hours, defined as 10:00 to 16:00 in their local time zone. Outside of
+core hours, employees may flex their schedule provided they meet weekly
+deliverables and attend all scheduled meetings.
+
+
+DATA SECURITY
+=============
+Remote employees must use company-provided equipment for all work tasks,
+must keep the laptop's full-disk encryption enabled, and must connect
+through the corporate VPN when accessing internal systems. Use of personal
+devices for company work is prohibited under any circumstance.
+
+
+POLICY OWNERSHIP AND REVIEW
+===========================
+This policy is owned by the People Operations team and is reviewed
+annually. Questions or proposed changes should be directed to
+people-ops@aurorasystems.example.
