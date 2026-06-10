@@ -120,25 +120,35 @@ else:
 # which ships separately from google-genai. This is the rag module, NOT the
 # retired vertexai.generative_models module, so it is safe to use here.
 #
-# Requires: pip install "google-cloud-aiplatform[rag]"  (recent version)
+# WHY you need this pip install: a stock Workbench/Colab environment usually
+# has google-cloud-aiplatform installed without the rag extra, so importing
+# vertexai.rag will fail with ModuleNotFoundError until you add it. Run this
+# once at the top of the notebook, then restart the kernel so the freshly
+# installed rag module is picked up:
+#
+#   !pip install --upgrade "google-cloud-aiplatform[rag]"
+#
+# The rag module is what gives you create_corpus, import_files, and the
+# managed embedding configuration we use below.
 import vertexai
 from vertexai import rag
 
-# rag.* calls go through the classic aiplatform client, which needs its own
-# init. This does not import the retired generative_models classes.
-vertexai.init(project=PROJECT_ID, location=LOCATION)
+# RAG_LOCATION is the region the corpus lives in. It does NOT have to match
+# your GCS bucket region. We deliberately point it at us-west1 because the
+# Vertex AI RAG Engine has capacity restrictions on us-central1, us-east1,
+# and us-east4 for new GCP projects (Spanner-backed mode is allowlist-only
+# in those three regions), and trying to create a corpus there fails with
+# INVALID_ARGUMENT. us-west1 has no such restriction.
+RAG_LOCATION = "us-west1"
+vertexai.init(project=PROJECT_ID, location=RAG_LOCATION)
 
-# Create the managed corpus. The embedding model turns each chunk into a vector
-# so the engine can retrieve by meaning, not just keyword match.
-#
-# vector_db=rag.RagManagedDb() puts the corpus on Serverless mode. New GCP
-# projects in us-central1 are not allowlisted for the default Spanner-backed
-# mode and will fail with INVALID_ARGUMENT otherwise. Serverless works for
-# every project out of the box.
+# Create the managed corpus. The embedding model turns each chunk into a
+# vector so the engine can retrieve by meaning, not just keyword match.
+# We use the default backend, which works cleanly in us-west1 with no
+# additional vector_db config required.
 corpus = rag.create_corpus(
     display_name="company-knowledge-base",
     backend_config=rag.RagVectorDbConfig(
-        vector_db=rag.RagManagedDb(),
         rag_embedding_model_config=rag.RagEmbeddingModelConfig(
             vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
                 publisher_model="publishers/google/models/text-embedding-005"
