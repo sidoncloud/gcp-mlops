@@ -15,12 +15,6 @@ summarization quality and groundedness, or computation-based metrics), and it
 returns a scored table plus aggregate summary metrics you can track over time.
 This is the backbone of LLMOps: regression-test prompts, compare candidate
 models before a migration, and gate releases on a quality bar.
-
-Note on environment: this lab targets the Gen AI Eval SDK shipped in recent
-google-cloud-aiplatform releases. The eval module was NOT importable in the
-build environment (google-cloud-aiplatform 1.40.0 predates it, and that build
-also had a protobuf / proto-plus mismatch), so the code here follows the
-documented SDK surface. Install the eval extra before running:
 """
 
 # Requires: pip install --upgrade "google-cloud-aiplatform[evaluation]"
@@ -115,15 +109,58 @@ summarization_eval = EvalTask(
 )
 
 result = summarization_eval.evaluate()
-
-print("Summary metrics:")
-print(result.summary_metrics)
-print("\nPer-example scores:")
-print(result.metrics_table)
+print("Evaluation complete.")
 
 
 # =============================================================================
-# Compare Two Models to Make a Migration Decision
+# Aggregate Scores Across All Rows
+# =============================================================================
+# result.summary_metrics is a dict keyed by "<metric>/mean" and "<metric>/std".
+# We print just the values we care about, formatted, so it reads cleanly on
+# screen: each metric on its own line with mean and standard deviation, plus
+# the row count. Higher is better for both metrics.
+
+print("\n" + "=" * 72)
+print("AGGREGATE SCORES (across all rows)")
+print("=" * 72)
+for metric_name in ["summarization_quality", "groundedness"]:
+    mean = result.summary_metrics.get(f"{metric_name}/mean")
+    std = result.summary_metrics.get(f"{metric_name}/std")
+    print(f"  {metric_name:25s}  mean={mean:.2f}  std={std:.2f}")
+print(f"  rows scored              {int(result.summary_metrics.get('row_count'))}")
+
+
+# =============================================================================
+# Per-Row Scores with the Judge's Explanation
+# =============================================================================
+# result.metrics_table is the full DataFrame: one row per example, columns for
+# prompt, response, and per-metric score + explanation. The default print
+# wraps it into unreadable chunks, so we iterate and print each row as one
+# clear block: prompt, response, then each metric's score and the judge's
+# plain English reasoning underneath it.
+
+def _short(s, n=140):
+    """Trim long text to one line so the block stays compact on screen."""
+    s = " ".join(str(s).split())
+    return s if len(s) <= n else s[: n - 1] + "..."
+
+
+print("\n" + "=" * 72)
+print("PER-ROW SCORES (one block per example)")
+print("=" * 72)
+for i, row in result.metrics_table.iterrows():
+    print(f"\n--- Row {i} ---")
+    print(f"Prompt:   {_short(row['prompt'])}")
+    print(f"Response: {_short(row['response'])}")
+    print()
+    print(f"  summarization_quality  score = {row['summarization_quality/score']:.1f} / 5")
+    print(f"    why: {_short(row['summarization_quality/explanation'], 260)}")
+    print(f"  groundedness           score = {row['groundedness/score']:.1f} / 1")
+    print(f"    why: {_short(row['groundedness/explanation'], 260)}")
+
+
+# =============================================================================
+# Run the A/B Migration Eval Across Two Candidate Models
 # =============================================================================
 # The real payoff of eval is the A/B decision: should we move from model A to
 # model B, or from prompt v1 to prompt v2? Instead of supplying a fixed
@@ -131,24 +168,21 @@ print(result.metrics_table)
 # the responses against the same prompts and the same metrics. Run it once per
 # candidate, then compare the summary metrics side by side.
 #
-# Here we pit a cheaper, faster flash model against a stronger model on the same
-# summarization task. Whichever wins on summarization quality without losing
-# groundedness is the one you promote.
+# Here we pit a cheaper, faster flash model against a stronger model on the
+# same summarization task. We use a small callable wrapper so the candidate
+# stays on the current google-genai SDK with no deprecated classes anywhere.
 
 migration_dataset = pd.DataFrame(
     {"prompt": [row["prompt"] for row in eval_rows]}
 )
 
 
-# EvalTask accepts a callable as the model: a function that takes the prompt
-# string and returns the response string. We use the current Gen AI SDK inside
-# it, so no part of this lab depends on the retired generative_models classes.
 def make_responder(model_name: str):
+    """Return a callable that takes a prompt and returns a response string."""
     def respond(prompt: str) -> str:
         return genai_client.models.generate_content(
             model=model_name, contents=prompt
         ).text
-
     return respond
 
 
@@ -169,12 +203,60 @@ for name, responder in candidates.items():
     candidate_result = task.evaluate(model=responder)
     comparison[name] = candidate_result.summary_metrics
 
-print("\nModel comparison (summary metrics):")
-for name, summary in comparison.items():
-    print(f"\n{name}:")
-    print(summary)
+print(f"\nScored {len(comparison)} candidate models on the same prompts.")
 
-# Decision rule in practice: promote the model with the higher mean
-# summarization_quality, provided its groundedness does not drop below your
-# release bar. If flash is within a small margin of pro, the cheaper model
-# usually wins on total cost of ownership.
+
+# =============================================================================
+# Compare the Two Models Side by Side
+# =============================================================================
+# Build a small DataFrame with one row per model and one column per metric mean
+# / std, then print it as a clean side-by-side. Higher is better on both means.
+
+rows = []
+for name, summary in comparison.items():
+    rows.append({
+        "model": name,
+        "quality_mean": summary.get("summarization_quality/mean"),
+        "quality_std": summary.get("summarization_quality/std"),
+        "groundedness_mean": summary.get("groundedness/mean"),
+        "groundedness_std": summary.get("groundedness/std"),
+    })
+compare_df = pd.DataFrame(rows).set_index("model")
+
+print("\n" + "=" * 72)
+print("MODEL COMPARISON  (means and standard deviations, higher is better)")
+print("=" * 72)
+print(compare_df.round(3).to_string())
+
+
+# =============================================================================
+# Compute Deltas and Apply the Decision Rule
+# =============================================================================
+# Deltas (pro minus flash). Positive on quality means pro is better. Positive
+# on groundedness means pro is better. Negative numbers favor flash.
+#
+# Decision rule: prefer the cheaper model (flash) unless pro wins on BOTH
+# axes by a meaningful margin. Groundedness is the hallucination canary, so
+# any groundedness regression is disqualifying regardless of quality.
+
+flash = compare_df.loc["gemini-2.5-flash"]
+pro = compare_df.loc["gemini-2.5-pro"]
+quality_delta = pro["quality_mean"] - flash["quality_mean"]
+ground_delta = pro["groundedness_mean"] - flash["groundedness_mean"]
+
+print("\nDeltas (pro - flash):")
+print(f"  quality       {quality_delta:+.2f}   (positive = pro wins on quality)")
+print(f"  groundedness  {ground_delta:+.2f}   (positive = pro wins on groundedness)")
+
+print("\nDecision:")
+if ground_delta < 0:
+    print("  -> promote gemini-2.5-flash")
+    print("     pro has lower groundedness; a bigger model that hallucinates")
+    print("     more is not a safe production migration even if quality is up.")
+elif quality_delta > 0.5 and ground_delta >= 0:
+    print("  -> promote gemini-2.5-pro")
+    print("     pro wins on both quality and groundedness, and the quality gap")
+    print("     is large enough to justify the higher per-token cost.")
+else:
+    print("  -> stay on gemini-2.5-flash")
+    print("     gaps are within noise; the cheaper, faster model wins on TCO.")
