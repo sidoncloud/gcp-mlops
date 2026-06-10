@@ -23,6 +23,7 @@ it finishes, and read back the results.
 """
 
 import csv
+import io
 import json
 import time
 from collections import Counter
@@ -41,11 +42,16 @@ BUCKET_NAME = "your-batch-bucket"
 INPUT_BLOB = "batch/input/requests.jsonl"
 OUTPUT_PREFIX = "batch/output"
 
-# Local path to the sample tickets that ship with this lab. 200 realistic
-# support messages spanning billing, account, bug, sales, and auth categories.
-TICKETS_CSV = "sample-data/support-tickets.csv"
+# Path inside the bucket where you have uploaded the sample tickets CSV.
+# Upload it once with:
+#   gsutil cp sample-data/support-tickets.csv \
+#     gs://YOUR_BUCKET/batch/sample-data/support-tickets.csv
+# After that, this notebook reads it directly from GCS, so it works from
+# Vertex AI Workbench, Colab, or any environment without the local file.
+TICKETS_BLOB = "batch/sample-data/support-tickets.csv"
 
 client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
+storage_client = storage.Client(project=PROJECT_ID)
 
 
 # =============================================================================
@@ -65,21 +71,23 @@ client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 
 # =============================================================================
-# Load the Ticket Backlog from CSV
+# Load the Ticket Backlog from Cloud Storage
 # =============================================================================
 # In a real project the source of truth would be a database table or a queue:
 # a nightly export of the support inbox, a Pub/Sub topic of pending tickets,
-# a BigQuery table of unresolved cases. To keep this lab self-contained we load
-# from a CSV checked into the repo. The shape stays the same either way: each
-# row is one input we want the model to score.
+# a BigQuery table of unresolved cases. To keep this lab self-contained we read
+# the CSV directly from your GCS bucket. The shape stays the same either way:
+# each row is one input we want the model to score.
+
+bucket = storage_client.bucket(BUCKET_NAME)
+csv_text = bucket.blob(TICKETS_BLOB).download_as_text()
 
 tickets = []
-with open(TICKETS_CSV, newline="") as f:
-    reader = csv.DictReader(f)
-    for row in reader:
-        tickets.append({"ticket_id": row["ticket_id"], "message": row["message"]})
+reader = csv.DictReader(io.StringIO(csv_text))
+for row in reader:
+    tickets.append({"ticket_id": row["ticket_id"], "message": row["message"]})
 
-print(f"Loaded {len(tickets)} tickets from {TICKETS_CSV}")
+print(f"Loaded {len(tickets)} tickets from gs://{BUCKET_NAME}/{TICKETS_BLOB}")
 print(f"First ticket: {tickets[0]['ticket_id']} -> {tickets[0]['message'][:80]}...")
 
 
@@ -137,8 +145,6 @@ print(f"Wrote {len(tickets)} requests to {local_input_path}")
 # command line you can instead run:
 #   gsutil cp requests.jsonl gs://your-batch-bucket/batch/input/requests.jsonl
 
-storage_client = storage.Client(project=PROJECT_ID)
-bucket = storage_client.bucket(BUCKET_NAME)
 bucket.blob(INPUT_BLOB).upload_from_filename(local_input_path)
 
 input_uri = f"gs://{BUCKET_NAME}/{INPUT_BLOB}"
