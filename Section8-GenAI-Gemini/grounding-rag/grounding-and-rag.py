@@ -130,14 +130,20 @@ vertexai.init(project=PROJECT_ID, location=LOCATION)
 
 # Create the managed corpus. The embedding model turns each chunk into a vector
 # so the engine can retrieve by meaning, not just keyword match.
+#
+# vector_db=rag.RagManagedDb() puts the corpus on Serverless mode. New GCP
+# projects in us-central1 are not allowlisted for the default Spanner-backed
+# mode and will fail with INVALID_ARGUMENT otherwise. Serverless works for
+# every project out of the box.
 corpus = rag.create_corpus(
     display_name="company-knowledge-base",
     backend_config=rag.RagVectorDbConfig(
+        vector_db=rag.RagManagedDb(),
         rag_embedding_model_config=rag.RagEmbeddingModelConfig(
             vertex_prediction_endpoint=rag.VertexPredictionEndpoint(
                 publisher_model="publishers/google/models/text-embedding-005"
             )
-        )
+        ),
     ),
 )
 print("\nCreated corpus:", corpus.name)
