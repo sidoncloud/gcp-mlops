@@ -1,0 +1,201 @@
+ticket_id,message
+TICKET-0067,Our team owner left the company without transferring ownership. What do we do?
+TICKET-0188,Session cookies are being dropped on Safari with Intelligent Tracking on.
+TICKET-0102,Logo in the top left navigates to the wrong workspace.
+TICKET-0194,OAuth scopes are wrong: the integration is requesting more access than it should.
+TICKET-0112,Tab title flashes Untitled instead of the actual page title.
+TICKET-0122,What is included in the Enterprise plan that is not in Pro?
+TICKET-0014,Can you change the billing address on my account? We moved offices.
+TICKET-0003,Why does my invoice show a $49 line item I do not recognize?
+TICKET-0065,Can I have two-factor authentication enforced on all members of my workspace?
+TICKET-0045,Please delete all of my data under GDPR right to erasure.
+TICKET-0137,Can you compare your platform to Competitor X in writing?
+TICKET-0171,Single sign-on works but it does not pick up the user's role correctly.
+TICKET-0129,Do you offer a free trial of Enterprise features?
+TICKET-0077,Can you remove my old phone number from the account? I do not have access to that line anymore.
+TICKET-0159,Can you send me the latest pricing one-pager for our buying committee?
+TICKET-0168,Why does my session expire after 10 minutes? It used to last all day.
+TICKET-0046,How do I change the primary email on the account?
+TICKET-0131,Our procurement requires a signed NDA before we share architecture details.
+TICKET-0031,I cannot find the invoice PDF anywhere in the portal. Where do I download it?
+TICKET-0004,I downgraded last month but I am still being charged the Pro plan price.
+TICKET-0160,Could we pilot with 20 seats for a month before committing to 200?
+TICKET-0016,I want to update the credit card on file but the form keeps rejecting my card.
+TICKET-0043,I changed my legal name. How do I update it on the account and invoices?
+TICKET-0127,We need MSA and DPA before we can sign. Who handles those?
+TICKET-0187,Login form does not show the Continue with GitHub button anymore.
+TICKET-0163,I lost access to my authenticator app. How do I recover my account?
+TICKET-0048,"Can I deactivate my account without deleting it, in case I come back later?"
+TICKET-0111,The reset password page returns 500 if I submit twice in a row.
+TICKET-0006,I cancelled three weeks ago but you charged my card again today.
+TICKET-0195,Cannot revoke a session from another device. The Sign out button does nothing.
+TICKET-0038,The amount you debited from my bank account does not match the invoice.
+TICKET-0123,We are evaluating you against two competitors. Can we get a technical demo?
+TICKET-0013,Why was I charged the setup fee twice when I only signed up once?
+TICKET-0037,I think your billing system charged me sales tax twice.
+TICKET-0154,Can we get a dedicated account manager included with our plan?
+TICKET-0070,Is it possible to assign multiple roles to a single user?
+TICKET-0062,Please change my account region from US to EU for compliance reasons.
+TICKET-0196,How do I enforce SSO for the whole team and disable password login?
+TICKET-0033,Our finance team needs a W9 from your company for vendor onboarding.
+TICKET-0173,When I log in from a new device I never get the verification email.
+TICKET-0172,Our SSO config broke after you updated the metadata URL.
+TICKET-0061,How long do you retain my data after I delete my account?
+TICKET-0011,I see two separate charges of $29 on the same day. Are these duplicates?
+TICKET-0145,Can you provide a TCO estimate over three years for our seat count?
+TICKET-0161,I never received the password reset email even after three tries.
+TICKET-0053,Is there a way to see who else has admin access on our workspace?
+TICKET-0126,Can you send me a sample contract we can run by our legal team?
+TICKET-0107,Date format on exports is mm/dd but the locale is set to UK.
+TICKET-0074,I cannot edit my email signature. The save button does nothing.
+TICKET-0114,The mobile share sheet crashes the whole app on iPad.
+TICKET-0106,"Email digests are showing entries from someone else's workspace, which is bad."
+TICKET-0096,Cannot resize the side panel since the last UI refresh.
+TICKET-0104,Status badge is stuck on processing even after the job clearly finished.
+TICKET-0146,What happens to our data and pricing if we exceed our seat allocation mid-cycle?
+TICKET-0044,I need to transfer ownership of the team workspace to my colleague.
+TICKET-0001,"My invoice charged me twice for the same month, please refund the extra."
+TICKET-0162,My two-factor codes are not working. They keep saying invalid code.
+TICKET-0193,Locked out after switching phones. Backup codes never showed up.
+TICKET-0017,Our payment method expired and now the account is suspended. How do I reactivate?
+TICKET-0081,The dashboard has been throwing a 500 error since this morning.
+TICKET-0103,"Comments thread does not expand when I click the icon, just freezes."
+TICKET-0039,Please cancel the failed payment retry. I will pay manually instead.
+TICKET-0157,"Are training and certification included with Enterprise, or are they an add-on?"
+TICKET-0177,Brute-force protection locked me out and the unlock link does not work.
+TICKET-0136,What is your roadmap for SOC 2 Type II this year?
+TICKET-0079,Please update the billing contact on the account to our finance lead.
+TICKET-0116,"Bulk-edit modal closes before save finishes, losing my changes."
+TICKET-0020,The discount code I applied at checkout does not show up on my receipt.
+TICKET-0015,The currency on my new invoice switched to GBP without warning.
+TICKET-0178,Signing in with Apple gives a 400 error after Apple's redirect.
+TICKET-0147,Does the Pro plan include audit logs or do we have to upgrade?
+TICKET-0180,Why is my login asking for two-factor when I never set it up?
+TICKET-0066,I need to revoke API tokens generated under my account.
+TICKET-0085,I cannot drag and drop files in the editor since the last update.
+TICKET-0166,How do I disable two-factor authentication? I keep getting locked out.
+TICKET-0047,I want to merge two accounts I accidentally created with different emails.
+TICKET-0105,I keep seeing a duplicate of myself in the Members list.
+TICKET-0080,How do I find my account ID? Support keeps asking for it.
+TICKET-0055,I need to invite five new users but the seat limit is blocking it.
+TICKET-0197,My SCIM-provisioned account does not have any roles assigned.
+TICKET-0086,Notifications stopped working entirely on my Android device.
+TICKET-0119,Sync indicator stays orange forever even when there is nothing to sync.
+TICKET-0110,Inline image previews are broken across all browsers since yesterday.
+TICKET-0134,I need a quote for 50 seats with annual billing in EUR.
+TICKET-0143,We want to bundle your platform with a partner offering. Who do I talk to?
+TICKET-0034,Why is the per-seat price different on my invoice than what is on the pricing page?
+TICKET-0019,Why is tax being added to my subscription? My state should be exempt.
+TICKET-0141,Do you support SCIM provisioning on the Business tier?
+TICKET-0124,Do you offer non-profit pricing? We are a registered 501c3.
+TICKET-0176,How do I rotate my API key without breaking existing integrations?
+TICKET-0064,Why is my account listed as suspended? I never got any warning.
+TICKET-0084,The search bar at the top of the dashboard does not return any results.
+TICKET-0149,What is the cancellation policy on annual contracts?
+TICKET-0101,Imports stall at 90 percent and never complete on files larger than 5 MB.
+TICKET-0156,Do you have any reseller pricing tiers?
+TICKET-0073,Can I disable email notifications entirely from my settings?
+TICKET-0028,"Our renewal date moved up by a week with no explanation, and we got charged early."
+TICKET-0185,Cannot generate a new personal access token; the button is disabled.
+TICKET-0113,Search returns deleted items even though they should be filtered out.
+TICKET-0052,I want to change my username but the field is greyed out.
+TICKET-0175,Cannot log in from incognito mode. Same credentials work in a normal window.
+TICKET-0005,The proration on my upgrade looks wrong. Can someone walk me through how it was calculated?
+TICKET-0030,The Stripe receipt I got is for an amount different from what the dashboard shows.
+TICKET-0184,The OAuth callback URL keeps returning a redirect mismatch error.
+TICKET-0100,The activity feed shows duplicate entries for everything that happens.
+TICKET-0099,API request returns 200 but the response body is empty.
+TICKET-0132,Is the AI add-on available on the Pro plan or only Enterprise?
+TICKET-0125,Is there an academic discount for university teams?
+TICKET-0199,Sign-in fails with Invalid client when using the dev OAuth client.
+TICKET-0135,Do you have any case studies in the healthcare vertical?
+TICKET-0179,"I forgot my username, not my password. How do I look it up?"
+TICKET-0121,Can you walk me through upgrading from the Starter to the Pro plan?
+TICKET-0035,We removed 5 seats last week but the invoice still bills us for them.
+TICKET-0049,I need to download a copy of every document I ever uploaded.
+TICKET-0170,SAML SSO with Okta is returning a SAMLResponse decode error.
+TICKET-0139,Are professional services included in onboarding for Enterprise?
+TICKET-0150,We need a written quote we can share with our CFO before approval.
+TICKET-0133,Can we get a custom SLA with a 99.99 percent uptime guarantee?
+TICKET-0128,Looking for annual pricing for 250 seats. Can sales reach out?
+TICKET-0022,How do I split billing between two different cost centers?
+TICKET-0082,When I click Export the page just spins forever and nothing downloads.
+TICKET-0078,I want to set a password expiration policy for our workspace.
+TICKET-0010,We need to switch our billing from monthly to annual. How does the credit work?
+TICKET-0083,The mobile app crashes every time I open the Settings tab on iOS 17.
+TICKET-0165,I am stuck in a login loop. Every time I sign in it kicks me back to the page.
+TICKET-0120,The new beta feature toggle is locked in the on position and I cannot turn it off.
+TICKET-0090,Save changes button does nothing on the new settings page in Safari.
+TICKET-0069,I want to set up an SSO connection with Okta.
+TICKET-0054,Please remove a former employee from the team. Their email is sam at example dot com.
+TICKET-0091,Two-factor codes are arriving 5 minutes late from your provider.
+TICKET-0095,Filtering by date range returns zero rows even when there is clearly data.
+TICKET-0042,Can you walk me through deleting my account permanently?
+TICKET-0094,Embedded videos no longer play after this morning's deploy.
+TICKET-0117,Status page says all systems operational but our API has been down for an hour.
+TICKET-0200,"Password reset email arrived 8 hours late, after the token had expired."
+TICKET-0158,I want to upgrade only some of our seats to Enterprise. Is mixed-tier possible?
+TICKET-0026,Refund request: the trial converted to paid even though I cancelled in time.
+TICKET-0181,Our Azure AD SSO returns Group not found for every user.
+TICKET-0148,Can we add custom branding and white-labeling to the platform?
+TICKET-0075,Our company changed its name. We need it updated everywhere it appears.
+TICKET-0059,We are doing an SSO migration. Can you walk me through pre-deactivating user accounts?
+TICKET-0153,Looking to add unlimited storage as an add-on. What does that cost?
+TICKET-0018,I need a copy of all invoices for 2025 for tax purposes.
+TICKET-0050,My profile picture is stuck on the old one even after I uploaded a new file.
+TICKET-0093,The new dark theme is broken on Firefox. Text is invisible on white backgrounds.
+TICKET-0076,How do I download my login history for the last 90 days?
+TICKET-0142,What does your data residency look like for EU customers?
+TICKET-0021,I was promised a 20 percent annual discount by sales but the invoice shows full price.
+TICKET-0097,Editor inserts a phantom blank line every time I press Enter.
+TICKET-0032,Annual upfront payment failed. Can I pay monthly instead?
+TICKET-0138,I want to negotiate a multi-year deal with a price lock.
+TICKET-0118,Imported emojis are rendering as boxes on Windows.
+TICKET-0012,I never received my invoice for May. Could you resend it to my work email?
+TICKET-0068,How do I rename a project? The rename button is disabled.
+TICKET-0089,I am getting a 429 rate-limit error on calls that used to work.
+TICKET-0092,Bulk delete is permanently removing items even though they should go to trash.
+TICKET-0025,I would like to pause my subscription for two months instead of cancelling.
+TICKET-0098,Webhook payloads are missing the user_id field that used to be there.
+TICKET-0183,Service account credentials stopped working with no changes on our side.
+TICKET-0191,The Sign in with Microsoft button errors out on Edge for half our team.
+TICKET-0087,The PDF export comes out blank. The HTML version works fine.
+TICKET-0182,Password reset link expires before I can click it. The lifetime seems too short.
+TICKET-0040,How do I add a PO number to all of our invoices going forward?
+TICKET-0169,I cannot enable MFA. The QR code does not render in my authenticator.
+TICKET-0088,Charts on my main report are showing the wrong data after the schema update.
+TICKET-0186,How do I unbind my account from Google SSO and switch to email/password?
+TICKET-0041,How do I export all of my data before I cancel my account?
+TICKET-0002,I was billed in USD instead of EUR like my account is configured for. Can you fix this?
+TICKET-0072,Where can I see the list of devices that have logged in to my account?
+TICKET-0151,Are there any discounts for paying upfront for two years?
+TICKET-0115,Pagination on the Reports tab is off by one. Page 2 shows the same data as page 1.
+TICKET-0057,How do I change the workspace name from Trial to our actual company name?
+TICKET-0108,Cannot change avatar; upload completes but the image never updates.
+TICKET-0192,Two-factor over SMS does not work in our country. Do you support TOTP only?
+TICKET-0167,Magic link emails are going straight to spam. Can you fix the sender reputation?
+TICKET-0051,How do I update the timezone on my account? It is showing the wrong one.
+TICKET-0144,Looking for a partnership conversation. Is there a referral program?
+TICKET-0198,Suspect a credential leak. How do I force a sign-out on every device?
+TICKET-0155,What is the typical onboarding timeline for a 200-person team?
+TICKET-0130,How does volume pricing work past 100 users?
+TICKET-0060,I cannot see my own activity log anywhere in settings.
+TICKET-0056,Can I bulk-import users via CSV instead of inviting one at a time?
+TICKET-0024,My subscription auto-renewed at the old price even though prices went up. Is that a glitch?
+TICKET-0008,"Autopay failed on my Visa, but you never sent any notification about it."
+TICKET-0009,Can I get a refund for last month? The service was down for two days in our region.
+TICKET-0109,Drag-to-reorder no longer works on the list view in Chrome.
+TICKET-0152,Do you offer Government cloud or FedRAMP-aligned hosting?
+TICKET-0023,Can you remove the late fee? Payment was delayed because of a bank holiday.
+TICKET-0140,Can we get a sandbox environment to test integration before signing?
+TICKET-0174,Backup codes are rejected as invalid even though I just generated them.
+TICKET-0027,I am being double-billed because I have two accounts under the same email somehow.
+TICKET-0189,Our security policy requires hardware keys. Do you support WebAuthn?
+TICKET-0036,Can I get a credit applied to next month for the outage on Tuesday?
+TICKET-0058,I lost access to the email I signed up with. How do I recover the account?
+TICKET-0063,I want to update my phone number for SMS notifications.
+TICKET-0071,Please remove the trial banner. We have already upgraded to paid.
+TICKET-0190,Cannot stay logged in across browser tabs. Each tab asks me to sign in again.
+TICKET-0007,My company needs an itemized invoice with our VAT number on it for last quarter.
+TICKET-0029,Please change the payment method on the team plan from card to ACH.
+TICKET-0164,The Google SSO button on the login page does nothing when I click it.

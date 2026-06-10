@@ -16,13 +16,16 @@ managed infrastructure, and it writes the results back out. Batch is roughly
 50 percent cheaper per token than online inference and is the right tool for
 large, latency-tolerant offline workloads.
 
-This lab builds a batch job end to end: we construct a JSONL request file,
-upload it to GCS, submit the job, poll until it finishes, and read back the
-results.
+This lab builds a batch job end to end against a realistic backlog of 200
+support tickets shipped in sample-data/support-tickets.csv. We construct a
+JSONL request file from the CSV, upload it to GCS, submit the job, poll until
+it finishes, and read back the results.
 """
 
+import csv
 import json
 import time
+from collections import Counter
 
 from google import genai
 from google.genai import types
@@ -37,6 +40,10 @@ MODEL = "gemini-2.5-flash"
 BUCKET_NAME = "your-batch-bucket"
 INPUT_BLOB = "batch/input/requests.jsonl"
 OUTPUT_PREFIX = "batch/output"
+
+# Local path to the sample tickets that ship with this lab. 200 realistic
+# support messages spanning billing, account, bug, sales, and auth categories.
+TICKETS_CSV = "sample-data/support-tickets.csv"
 
 client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
@@ -58,37 +65,49 @@ client = genai.Client(vertexai=True, project=PROJECT_ID, location=LOCATION)
 
 
 # =============================================================================
+# Load the Ticket Backlog from CSV
+# =============================================================================
+# In a real project the source of truth would be a database table or a queue:
+# a nightly export of the support inbox, a Pub/Sub topic of pending tickets,
+# a BigQuery table of unresolved cases. To keep this lab self-contained we load
+# from a CSV checked into the repo. The shape stays the same either way: each
+# row is one input we want the model to score.
+
+tickets = []
+with open(TICKETS_CSV, newline="") as f:
+    reader = csv.DictReader(f)
+    for row in reader:
+        tickets.append({"ticket_id": row["ticket_id"], "message": row["message"]})
+
+print(f"Loaded {len(tickets)} tickets from {TICKETS_CSV}")
+print(f"First ticket: {tickets[0]['ticket_id']} -> {tickets[0]['message'][:80]}...")
+
+
+# =============================================================================
 # Build the JSONL Request File
 # =============================================================================
 # A batch input file is JSON Lines: one self-contained request per line. Each
 # line uses the same "request" shape you would pass to generate_content, so the
 # model field, the contents, and any generation config all live inside it.
-# Here we run a simple classification task over a list of support messages,
-# asking Gemini to bucket each one into a fixed set of categories.
-
-support_messages = [
-    "My invoice charged me twice for the same month, please refund the extra.",
-    "How do I export all of my data before I cancel my account?",
-    "The dashboard has been throwing a 500 error since this morning.",
-    "Can you walk me through upgrading from the Starter to the Pro plan?",
-    "I never received the password reset email even after three tries.",
-]
+# Every row is fully self-contained, which is what lets Vertex AI fan the work
+# out across many workers in parallel.
 
 CATEGORIES = ["billing", "account", "bug", "sales", "auth"]
 
 system_instruction = (
     "You are a support triage assistant. Classify the user message into exactly "
     f"one of these categories: {', '.join(CATEGORIES)}. "
-    "Reply with only the single category word."
+    "Reply with only the single category word, lowercase, no punctuation."
 )
 
 
-def build_request(message: str) -> dict:
+def build_request(ticket_id: str, message: str) -> dict:
     """Return one batch request row in the structure Vertex AI expects.
 
     The "request" key holds a standard GenerateContent payload: a contents list
-    of role/parts plus a generationConfig. Keeping each row fully self-contained
-    is what lets the service fan the work out across many workers.
+    of role/parts plus a generationConfig. We also tag each row with a "labels"
+    block carrying the ticket_id, so the original identifier round-trips through
+    the job and we can correlate every prediction back to its source row.
     """
     return {
         "request": {
@@ -97,16 +116,17 @@ def build_request(message: str) -> dict:
             ],
             "systemInstruction": {"parts": [{"text": system_instruction}]},
             "generationConfig": {"temperature": 0.0},
+            "labels": {"ticket_id": ticket_id},
         }
     }
 
 
 local_input_path = "requests.jsonl"
 with open(local_input_path, "w") as f:
-    for message in support_messages:
-        f.write(json.dumps(build_request(message)) + "\n")
+    for t in tickets:
+        f.write(json.dumps(build_request(t["ticket_id"], t["message"])) + "\n")
 
-print(f"Wrote {len(support_messages)} requests to {local_input_path}")
+print(f"Wrote {len(tickets)} requests to {local_input_path}")
 
 
 # =============================================================================
@@ -181,17 +201,20 @@ if job.state != types.JobState.JOB_STATE_SUCCEEDED:
 
 
 # =============================================================================
-# Read and Print the Results
+# Read and Summarize the Results
 # =============================================================================
 # Vertex AI writes a predictions file under the output prefix. We list the
-# objects at that prefix, find the predictions JSONL, and parse each line. Every
-# output row pairs the original request with the model's response, so order and
-# correlation are preserved for joining back to your source data.
+# objects at that prefix, parse each line, and pull out the prediction text
+# plus the ticket_id we tagged on the way in. With 200 rows we summarize by
+# category counts instead of printing every prediction, then print a small
+# sample to show the per-ticket correlation.
 
 result_uri = job.dest.gcs_uri if job.dest else output_uri
 result_prefix = result_uri.replace(f"gs://{BUCKET_NAME}/", "")
 
 print(f"Reading results from {result_uri}")
+
+predictions = []  # list of (ticket_id, category)
 for blob in storage_client.list_blobs(BUCKET_NAME, prefix=result_prefix):
     if not blob.name.endswith(".jsonl"):
         continue
@@ -200,12 +223,31 @@ for blob in storage_client.list_blobs(BUCKET_NAME, prefix=result_prefix):
             continue
         record = json.loads(line)
         # The response shape mirrors generate_content: candidates -> content
-        # -> parts -> text. We pull the predicted category out of the first
-        # candidate. Defensive .get() chaining keeps a single malformed row
-        # from killing the whole read.
+        # -> parts -> text. Defensive .get() chaining keeps a single malformed
+        # row from killing the whole read on a large job.
         candidates = record.get("response", {}).get("candidates", [])
         prediction = ""
         if candidates:
             parts = candidates[0].get("content", {}).get("parts", [])
-            prediction = parts[0].get("text", "").strip() if parts else ""
-        print(f"-> {prediction}")
+            prediction = parts[0].get("text", "").strip().lower() if parts else ""
+        # ticket_id round-trips on the request labels so we can correlate back.
+        ticket_id = (
+            record.get("request", {}).get("labels", {}).get("ticket_id", "UNKNOWN")
+        )
+        predictions.append((ticket_id, prediction))
+
+print(f"\nRead {len(predictions)} predictions back")
+
+# Category counts across the whole backlog
+counts = Counter(p for _, p in predictions)
+print("\nPredictions by category:")
+for cat in CATEGORIES:
+    print(f"  {cat:>8s}: {counts.get(cat, 0)}")
+other = sum(v for k, v in counts.items() if k not in CATEGORIES)
+if other:
+    print(f"  {'other':>8s}: {other}")
+
+# A small sample so you can see the per-ticket correlation working
+print("\nSample predictions:")
+for ticket_id, category in predictions[:10]:
+    print(f"  {ticket_id} -> {category}")
