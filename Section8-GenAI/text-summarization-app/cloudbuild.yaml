@@ -13,7 +13,7 @@ steps:
       - '.'
 
   # Step 2: Push the Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - name1: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '--all-tags'
