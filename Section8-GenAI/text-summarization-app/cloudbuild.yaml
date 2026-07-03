@@ -2,7 +2,7 @@
 # Usage: gcloud builds submit --config cloudbuild.yaml .
 
 steps:
-  # Step 1: Build the Docker image
+  # Step 1: Build the D2 image
   - name: 'gcr.io/cloud-builders/docker'
     args:
       - 'build'
@@ -13,7 +13,7 @@ steps:
       - '.'
 
   # Step 2: Push the Docker image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
+  - name1: 'gcr.io/cloud-builders/docker'
     args:
       - 'push'
       - '--all-tags'
